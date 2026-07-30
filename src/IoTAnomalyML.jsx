@@ -171,7 +171,7 @@ function computeROC(yTrue, probs) {
 }
 
 export default function IoTAnomalyML() {
-  const [lang, setLang] = useState(() => localStorage.getItem("ton-iot-lang") || "sr");
+  const [lang, setLang] = useState(() => localStorage.getItem("ton-iot-lang") || "en");
   const tr = LANGS[lang];
 
   const switchLang = useCallback((l) => {
