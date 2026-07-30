@@ -1,0 +1,113 @@
+{
+  "eyebrow": "ToN-IoT · running in-browser (TensorFlow.js)",
+  "title": "Check whether your network traffic looks suspicious",
+  "subtitle": "Upload a file with network data and get a real analysis in seconds — the model runs entirely in your browser, no data is sent to a server.",
+  "ctaUpload": "Upload a file and check",
+  "stats": {
+    "train": "train instances",
+    "test": "test instances",
+    "features": "features",
+    "arch": "architecture"
+  },
+  "cache": {
+    "checking": "checking for a saved model in the browser…",
+    "loaded": "✓ model loaded from local browser storage (IndexedDB) — training was not needed",
+    "clear": "clear saved model"
+  },
+  "training": {
+    "title": "Training the neural network",
+    "tooltip": "The model is actually being trained in your browser — the estimated weight of every connection in the network is iteratively corrected across 25 passes through the training data (epochs).",
+    "archDesc": "Dense(16, relu) → Dense(8, relu) → Dense(1, sigmoid) · Adam · binary crossentropy",
+    "btnIdle": "Start training",
+    "btnRunning": "Training in progress…",
+    "btnDone": "Train again",
+    "placeholder": "press \"Start training\" to see the live learning curve"
+  },
+  "chart": {
+    "epoch": "epoch",
+    "trainAcc": "accuracy (train)",
+    "valAcc": "accuracy (test, live)",
+    "trainLoss": "loss (train)"
+  },
+  "results": {
+    "title": "Real results on the test set",
+    "accuracy": "accuracy",
+    "precision": "precision",
+    "recall": "recall",
+    "f1": "F1-score"
+  },
+  "roc": {
+    "title": "ROC curve",
+    "tooltip": "Shows the tradeoff between true positive rate (TPR) and false positive rate (FPR) across decision thresholds — computed live from the model's actual predictions. An AUC (area under the curve) closer to 1.0 means the model is better at telling normal and anomalous traffic apart, regardless of the chosen threshold.",
+    "fpr": "FPR (false positive rate)",
+    "tpr": "TPR (true positive rate)"
+  },
+  "livePred": {
+    "title": "Live prediction on a random sample",
+    "tooltip": "A random flow is picked from the test set (which the model never saw during training), and what the model actually predicts at that moment is shown.",
+    "btnTest": "test a random flow",
+    "placeholder": "press the button to try a real prediction from the model",
+    "modelPredicts": "model predicts",
+    "probAttack": "attack probability",
+    "actualLabel": "actual label",
+    "anomalous": "anomalous",
+    "normal": "normal",
+    "correct": "correct",
+    "incorrect": "incorrect"
+  },
+  "importance": {
+    "title": "Feature importance (permutation importance)",
+    "tooltip": "For each feature, values are randomly shuffled across the test instances, and the drop in accuracy is measured — a larger drop means the model relied more heavily on that feature.",
+    "desc": "computed live by shuffling each column and measuring the accuracy drop",
+    "btnIdle": "compute importance",
+    "btnRunning": "computing…",
+    "dropLabel": "accuracy drop"
+  },
+  "csv": {
+    "title": "Import your own CSV",
+    "intro": "Choose a file with network traffic data (CSV) — you'll get a result right away, no need to understand how the model works under the hood.",
+    "disclaimer": "The model was trained on a research dataset (ToN-IoT) and works best with similar network flow data. Results are for educational/demonstration purposes, not a substitute for a professional security system.",
+    "formatDetails": "file format details (for advanced users)",
+    "tooltip": "Upload a CSV file of network flows — the app recognizes both already-encoded columns and the Zeek naming convention (e.g. id.resp_p, orig_bytes, orig_pkts), which the ToN-IoT dataset itself is based on. The model will run a real prediction over your data in the browser.",
+    "requiredCols": "required columns:",
+    "optionalCols": "optional (auto-detected):",
+    "downloadTemplate": "download example",
+    "downloadResults": "download results (CSV)",
+    "previewTitle": "preview recognized values (first 3 rows)",
+    "previewNote": "This is how the app interpreted your columns before running the prediction — check that the values look right (e.g. proto_tcp/proto_udp shouldn't both be 0 if the flow is TCP or UDP traffic).",
+    "zeekNote": "Zeek-style column names are also automatically recognized (e.g. id.resp_p, orig_bytes, orig_pkts, resp_ip_bytes) — the same format used by the ToN-IoT dataset itself. Exact names aren't required, either convention works.",
+    "chooseFile": "choose a .csv file",
+    "processing": "processing file…",
+    "analyzed": "analyzed",
+    "normal": "normal",
+    "anomalous": "anomalous",
+    "anomalyRate": "anomaly rate:",
+    "topRows": "top 10 suspicious rows",
+    "row": "row",
+    "probAttack": "attack probability",
+    "errors": {
+      "noModel": "Start training the model first.",
+      "empty": "The file contains no data rows.",
+      "missingCols": "Missing columns in the CSV:",
+      "parse": "Error processing the file:",
+      "read": "Error reading the file:"
+    }
+  },
+  "infoTipLabel": "Explanation",
+  "features": {
+    "dst_port": "destination port",
+    "src_ip_bytes": "bytes (source)",
+    "src_pkts": "packets (source)",
+    "proto_tcp": "protocol = TCP",
+    "proto_udp": "protocol = UDP",
+    "dst_ip_bytes": "bytes (destination)",
+    "dst_pkts": "packets (destination)",
+    "conn_state_REJ": "state = rejected",
+    "conn_state_OTH": "state = other",
+    "src_bytes": "layer bytes (source)",
+    "service_dns": "service = DNS",
+    "has_dns_query": "contains DNS query",
+    "dns_rejected_F": "DNS rejected = no",
+    "dns_RD_F": "DNS recursion = no"
+  }
+}
