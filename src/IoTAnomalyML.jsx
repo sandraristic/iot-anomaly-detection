@@ -8,6 +8,7 @@ import Papa from "papaparse";
 import sr from "./locales/sr.json";
 import en from "./locales/en.json";
 import DATA from "./utils/data.json";
+import ServerTrainingPanel from "./ServerTrainingPanel.jsx";
 
 
 const MODEL_STORAGE_KEY = "indexeddb://ton-iot-anomaly-model-v1";
@@ -36,13 +37,13 @@ function normalize(X, mean, std) {
   return X.map((row) => row.map((v, j) => (v - mean[j]) / std[j]));
 }
 
-// Обележја која МОРАЈУ бити присутна као сирове нумеричке колоне (не могу се извести)
-// Мапа синонима назива колона - препознаје конвенцију именовања коју користи Zeek
-// (алат на коме је заснован и ToN-IoT скуп података), као и уобичајене варијанте
-// (camelCase, размаком одвојено, "id.resp_p" стил из Zeek conn.log-a итд).
-// Ово НЕ покрива сваки могући формат мрежних токова (нпр. NetFlow/IPFIX/CICFlowMeter
-// имају потпуно другачију структуру поља) - фокус је на Zeek-заснованим извозима,
-// који су најчешћи у IoT/IDS истраживачком контексту.
+// Obeležja koja MORAJU biti prisutna kao sirove numeričke kolone (ne mogu se izvesti)
+// Mapa sinonima naziva kolona - prepoznaje konvenciju imenovanja koju koristi Zeek
+// (alat na kome je zasnovan i ToN-IoT skup podataka), kao i uobičajene varijante
+// (camelCase, razmakom odvojeno, "id.resp_p" stil iz Zeek conn.log-a itd).
+// Ovo NE pokriva svaki mogući format mrežnih tokova (npr. NetFlow/IPFIX/CICFlowMeter
+// imaju potpuno drugačiju strukturu polja) - fokus je na Zeek-zasnovanim izvozima,
+// koji su najčešći u IoT/IDS istraživačkom kontekstu.
 const COLUMN_ALIASES = {
   dst_port: ["dst_port", "dstport", "dest_port", "destination_port", "id.resp_p", "resp_p"],
   proto: ["proto", "protocol", "transport_protocol"],
@@ -59,8 +60,8 @@ const COLUMN_ALIASES = {
   dns_RD: ["dns_RD", "dns_rd", "recursion_desired"],
 };
 
-// Нормализује имена колона у улазном реду - препознаје варијанте без обзира на
-// велика/мала слова, размаке или тачке, и мапира их на канонски назив коришћен у моделу.
+// Normalizuje imena kolona u ulaznom redu - prepoznaje varijante bez obzira na
+// velika/mala slova, razmake ili tačke, i mapira ih na kanonski naziv korišćen u modelu.
 function normalizeColumnNames(row) {
   const normalized = {};
   const lookup = {};
@@ -79,8 +80,8 @@ function normalizeColumnNames(row) {
 
 const REQUIRED_NUMERIC_COLS = ["dst_port", "src_ip_bytes", "src_pkts", "dst_ip_bytes", "dst_pkts", "src_bytes"];
 
-// Изводи вредност обележја из реда - прихвата или већ енкодирано обележје (нпр. proto_tcp=1)
-// или сирове колоне уобичајене у мрежним логовима (нпр. proto="tcp", service="dns", conn_state="REJ")
+// Izvodi vrednost obeležja iz reda - prihvata ili već enkodirano obeležje (npr. proto_tcp=1)
+// ili sirove kolone uobičajene u mrežnim logovima (npr. proto="tcp", service="dns", conn_state="REJ")
 function deriveFeatureValue(row, feature) {
   if (feature in row && row[feature] !== null && row[feature] !== undefined && row[feature] !== "") {
     return Number(row[feature]) || 0;
@@ -141,8 +142,8 @@ function computeMetrics(yTrue, yPred) {
   return { tp, tn, fp, fn, acc, prec, rec, f1 };
 }
 
-// Рачуна ROC криву (TPR у функцији FPR) над низом прагова одлуке, и AUC
-// применом трапезног правила интеграције - у складу са дефиницијом из поглавља 4.4.
+// Računa ROC krivu (TPR u funkciji FPR) nad nizom pragova odluke, i AUC
+// primenom trapeznog pravila integracije - u skladu sa definicijom iz poglavlja 4.4.
 function computeROC(yTrue, probs) {
   const nPos = yTrue.reduce((s, v) => s + v, 0);
   const nNeg = yTrue.length - nPos;
@@ -172,6 +173,7 @@ function computeROC(yTrue, probs) {
 
 export default function IoTAnomalyML() {
   const [lang, setLang] = useState(() => localStorage.getItem("ton-iot-lang") || "en");
+  const [trainingMode, setTrainingMode] = useState("client");
   const tr = LANGS[lang];
 
   const switchLang = useCallback((l) => {
@@ -327,14 +329,14 @@ export default function IoTAnomalyML() {
       localStorage.setItem(NORM_STORAGE_KEY, JSON.stringify({ mean, std }));
       localStorage.setItem(MODEL_META_KEY, JSON.stringify({ trainedAt: new Date().toISOString(), acc: m.acc }));
     } catch (e) {
-      // čuvanje u IndexedDB nije uspelo (нпр. приватни режим прегледача) - модел и даље ради у меморији
+      // čuvanje u IndexedDB nije uspelo (npr. privatni režim pregledača) - model i dalje radi u memoriji
     }
 
     xTrainT.dispose(); yTrainT.dispose(); xTestT.dispose(); yTestT.dispose(); predTensor.dispose();
   }, []);
 
-  // Аутоматски покреће тренирање чим се утврди да нема сачуваног модела у прегледачу -
-  // корисник не мора да кликће дугме да би добио резултате.
+  // Automatski pokreće treniranje čim se utvrdi da nema sačuvanog modela u pregledaču -
+  // korisnik ne mora da klikće dugme da bi dobio rezultate.
   useEffect(() => {
     if (!checkingCache && phase === "idle") {
       startTraining();
@@ -419,7 +421,7 @@ export default function IoTAnomalyML() {
           }
           const X = rows.map((r) => DATA.features.map((f) => deriveFeatureValue(r, f)));
 
-          // Преглед - прве 3 инстанце, ради визуелне провере да ли је препознавање колона исправно
+          // Pregled - prve 3 instance, radi vizuelne provere da li je prepoznavanje kolona ispravno
           const previewRows = rows.slice(0, 3).map((r, idx) => ({
             index: idx + 1,
             values: DATA.features.map((f) => ({ feature: f, value: X[idx][DATA.features.indexOf(f)] })),
@@ -523,6 +525,29 @@ export default function IoTAnomalyML() {
         <p className="text-slate-600 dark:text-slate-400 text-sm max-w-2xl mb-4">
           {tr.subtitle}
         </p>
+        <div className="mb-7 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-1.5 shadow-sm">
+          <div className="grid grid-cols-2 gap-1.5">
+            <button onClick={() => setTrainingMode("client")} className={"rounded-xl px-4 py-3 text-left transition-all " + (trainingMode === "client" ? "bg-teal-500 text-slate-950 shadow-sm" : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800")}>
+              <span className="block text-sm font-semibold">{lang === "sr" ? "Klijentski trening" : "Client training"}</span>
+              <span className={"mt-0.5 block text-[11px] font-mono " + (trainingMode === "client" ? "text-slate-800/70" : "text-slate-500")}>TensorFlow.js · browser · embedded JSON</span>
+            </button>
+            <button onClick={() => setTrainingMode("server")} className={"rounded-xl px-4 py-3 text-left transition-all " + (trainingMode === "server" ? "bg-blue-600 text-white shadow-sm" : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800")}>
+              <span className="block text-sm font-semibold">{lang === "sr" ? "Serverski trening" : "Server training"}</span>
+              <span className={"mt-0.5 block text-[11px] font-mono " + (trainingMode === "server" ? "text-blue-100" : "text-slate-500")}>Python · uploaded CSV · Random Forest / XGBoost</span>
+            </button>
+          </div>
+        </div>
+        <div className="mb-6 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 px-4 py-3 text-sm leading-6 text-slate-600 dark:text-slate-400">
+          {trainingMode === "client"
+            ? (lang === "sr"
+                ? "Treniranje i predikcija izvršavaju se lokalno u pregledaču pomoću TensorFlow.js, bez slanja podataka na server."
+                : "Training and prediction run locally in the browser with TensorFlow.js, without sending data to the server.")
+            : (lang === "sr"
+                ? "Podaci se šalju Python serveru, gde se vrše priprema podataka, treniranje i evaluacija modela."
+                : "Data is sent to the Python server, where preprocessing, model training and evaluation are performed.")}
+        </div>
+
+        {trainingMode === "client" && <>
         <button
           onClick={scrollToUpload}
           className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-teal-500 hover:bg-teal-400 text-slate-950 font-medium text-sm transition-colors mb-8"
@@ -874,6 +899,9 @@ export default function IoTAnomalyML() {
             )}
           </div>
         )}
+
+        </>}
+        {trainingMode === "server" && <ServerTrainingPanel lang={lang} />}
       </div>
     </div>
   );
