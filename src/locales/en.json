@@ -1,5 +1,5 @@
 {
-  "eyebrow": "ToN-IoT · running in-browser",
+  "eyebrow": "ToN-IoT · Machine Learning Anomaly Detection",
   "title": "Check whether your network traffic looks suspicious",
   "subtitle": "Upload a file with network data and get a real analysis in seconds — the model runs entirely in your browser, no data is sent to a server.",
   "ctaUpload": "Upload a file and check",
