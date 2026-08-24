@@ -62,7 +62,7 @@ training_semaphore = asyncio.Semaphore(MAX_CONCURRENT_TRAININGS)
 rate_buckets: dict[str, deque[float]] = defaultdict(deque)
 
 app = FastAPI(
-    title="IoT-NIDS Server Training API",
+    title="ToN-IoT · Machine Learning Anomaly Detection API",
     version="1.1.0",
     docs_url="/docs",
     redoc_url=None,
